@@ -1,0 +1,37 @@
+name: Run Pokémon Game CI
+
+# 🟢 Déclenchement : à chaque push ou pull request sur la branche main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Cloner ton dépôt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Installer Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Installer les dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # 4️⃣ Exécuter les tests unitaires
+      - name: Run tests
+        run: npm test
+
+      # 5️⃣ Lancer ton jeu Pokémon (serveur ou script)
+      - name: Start Pokémon Game
+        run: |
+          node server.js &
+          sleep 5
+          echo "🚀 Pokémon game is running!"
