@@ -3,7 +3,7 @@ import { askPlayerPokemon } from "./choosePokemon.js";
 import { chooseBotPokemon } from "./chooseBotPokemon.js";
 
 export async function startBattle() {
-  console.log("le combat Pokémon !");
+  console.log("le combat Pokémon est lancé !");
 
   const player = await askPlayerPokemon();
   const bot = await chooseBotPokemon();
