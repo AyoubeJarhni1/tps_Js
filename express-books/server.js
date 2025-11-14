@@ -1,21 +1,26 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./coonctionDb/mongosse');
-const auth = require('./routes/auth');
+// server.js
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './connectionDb/mongosse.js';
+import authRoutes from './routes/auth.js';
+import bookRoutes from './routes/books.js';
 
 dotenv.config();
-connectDB(); 
+
+// Connexion à MongoDB
+connectDB();
 
 const app = express();
+
+// Middleware pour parser le JSON
 app.use(express.json());
 
-
-app.use("/auth", auth);
-console.log(auth);
-
+// Routes
+app.use('/auth', authRoutes);
+app.use('/books', bookRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Serveur Express connecté à MongoDB ');
+  res.send('Serveur Express connecté à MongoDB');
 });
 
 const PORT = process.env.PORT || 3000;
