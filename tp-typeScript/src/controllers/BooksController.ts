@@ -13,12 +13,10 @@ export const addBook = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getBooks = async (req: Request, res: Response) => {
   const books = await bookModel.find();
   res.json(books);
 };
-
 
 export const deleteBook = async (req: Request, res: Response) => {
   const { id } = req.params;
