@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+  <h1 class="text-3xl font-bold mb-4">Book Reading Tracker</h1>
+
+  <form id="bookForm" class="bg-white p-6 rounded shadow-md mb-6">
+    <input type="text" id="title" placeholder="Title" class="border p-2 mb-2 w-full" required />
+    <input type="text" id="author" placeholder="Author" class="border p-2 mb-2 w-full" required />
+    <input type="number" id="numberOfPages" placeholder="Number of Pages" class="border p-2 mb-2 w-full" required />
+    <input type="number" id="pagesRead" placeholder="Pages Read" class="border p-2 mb-2 w-full" required />
+    <input type="number" id="price" placeholder="Price" class="border p-2 mb-2 w-full" required />
+    <select id="status" class="border p-2 mb-2 w-full" required>
+      <option value="Read">Read</option>
+      <option value="Re-read">Re-read</option>
+      <option value="DNF">DNF</option>
+      <option value="Currently reading">Currently reading</option>
+      <option value="Returned Unread">Returned Unread</option>
+      <option value="Want to read">Want to read</option>
+    </select>
+    <select id="format" class="border p-2 mb-2 w-full" required>
+      <option value="Print">Print</option>
+      <option value="PDF">PDF</option>
+      <option value="Ebook">Ebook</option>
+      <option value="AudioBook">AudioBook</option>
+    </select>
+    <input type="text" id="suggestedBy" placeholder="Suggested By" class="border p-2 mb-2 w-full" />
+    <button type="submit" class="bg-blue-500 text-white p-2 rounded">Add Book</button>
+  </form>
+
+   <div id="booksList" class="space-y-2"></div>
+
+   <div id="stats" class="bg-gray-200 p-4 rounded mb-4">
+    <h2 class="text-xl font-bold mb-2">Global Stats</h2>
+    <p id="totalBooksRead">Total Books Read: 0</p>
+    <p id="totalPagesRead">Total Pages Read: 0</p>
+    <div class="w-full bg-gray-400 h-4 rounded mt-2">
+      <div id="globalProgress" class="bg-green-500 h-4 rounded" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('bookForm');
+    const booksList = document.getElementById('booksList');
+    const totalBooksReadEl = document.getElementById('totalBooksRead');
+    const totalPagesReadEl = document.getElementById('totalPagesRead');
+    const globalProgressEl = document.getElementById('globalProgress');
+
+    async function fetchBooks() {
+      const res = await fetch('/api/books');
+      const books = await res.json();
+
+      const totalBooksRead = books.filter(b => b.finished).length;
+      const totalPagesRead = books.reduce((sum, b) => sum + b.pagesRead, 0);
+      const totalPages = books.reduce((sum, b) => sum + b.numberOfPages, 0);
+      const globalPercent = totalPages ? Math.round((totalPagesRead / totalPages) * 100) : 0;
+
+      totalBooksReadEl.textContent = `Total Books Read: ${totalBooksRead}`;
+      totalPagesReadEl.textContent = `Total Pages Read: ${totalPagesRead}`;
+      globalProgressEl.style.width = `${globalPercent}%`;
+
+      booksList.innerHTML = '';
+      books.forEach(book => {
+        const percent = Math.round((book.pagesRead / book.numberOfPages) * 100);
+        booksList.innerHTML += `
+          <div class="bg-white p-4 rounded shadow">
+            <h2 class="font-bold">${book.title} by ${book.author}</h2>
+            <p>Status: ${book.status} | Format: ${book.format} | Finished: ${book.finished}</p>
+            <p>Pages Read: ${book.pagesRead}/${book.numberOfPages} (${percent}%)</p>
+            <p>Price: $${book.price} | Suggested By: ${book.suggestedBy || '-'}</p>
+            <button onclick="deleteBook('${book._id}')" class="text-red-500">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const book = {
+        title: form.title.value,
+        author: form.author.value,
+        numberOfPages: Number(form.numberOfPages.value),
+        pagesRead: Number(form.pagesRead.value),
+        price: Number(form.price.value),
+        status: form.status.value,
+        format: form.format.value,
+        suggestedBy: form.suggestedBy.value
+      };
+      await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(book)
+      });
+      form.reset();
+      fetchBooks();
+    });
+
+    async function deleteBook(id) {
+      await fetch(`/api/books/${id}`, { method: 'DELETE' });
+      fetchBooks();
+    }
+
+    fetchBooks();
+  </script>
+</body>
+</html>
